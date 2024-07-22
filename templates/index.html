@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Search</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">PDF Search</h1>
+        <form id="search-form" class="mt-4">
+            <div class="form-group">
+                <input type="text" class="form-control" id="query" placeholder="Enter search term">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Search</button>
+        </form>
+        <div id="results" class="mt-5"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#search-form').on('submit', function(event) {
+                event.preventDefault();
+                let query = $('#query').val();
+                if (query) {
+                    $.getJSON(`/search?query=${query}`, function(data) {
+                        let resultsDiv = $('#results');
+                        resultsDiv.empty();
+                        if (data.message) {
+                            resultsDiv.append(`<div class="alert alert-warning">${data.message}</div>`);
+                        } else {
+                            for (let [filename, text] of Object.entries(data)) {
+                                resultsDiv.append(`
+                                    <div class="card mb-3">
+                                        <div class="card-header">${filename}</div>
+                                        <div class="card-body">
+                                            <pre>${text}</pre>
+                                        </div>
+                                    </div>
+                                `);
+                            }
+                        }
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        $('#results').empty().append(`<div class="alert alert-danger">Error: ${errorThrown}</div>`);
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
